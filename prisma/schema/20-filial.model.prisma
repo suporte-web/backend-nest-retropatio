@@ -1,0 +1,17 @@
+model Filial {
+  id         String       @id @default(uuid()) @map("id")
+  nome       String       @map("nome")
+  codigo     String       @unique @map("codigo")
+  endereco   String       @map("endereco")
+  ativo      Boolean      @default(true) @map("ativo")
+  createdAt  DateTime     @default(now()) @map("createdAt")
+  updatedAt  DateTime     @updatedAt @map("updatedAt")
+  entradas   Entrada[]
+  User       User[]
+  usuarios   UserFilial[]
+  vagas      Vaga[]
+  Veiculo    Veiculo[]
+  visitantes Visitante[]
+
+  @@map("Filial")
+}

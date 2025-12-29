@@ -1,0 +1,7 @@
+model TipoVaga {
+  Id    Int    @id @default(autoincrement()) @map("Id")
+  Nome  String @unique @map("Nome") @db.VarChar(100)
+  Vagas Vaga[]
+
+  @@map("TipoVaga")
+}

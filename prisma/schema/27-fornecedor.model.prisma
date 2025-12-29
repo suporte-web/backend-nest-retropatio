@@ -1,0 +1,10 @@
+model Fornecedor {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @map("id") @db.Uuid
+  nome      String   @map("nome")
+  cnpj      String   @unique @map("cnpj")
+  ativo     Boolean  @default(true) @map("ativo")
+  createdAt DateTime @default(now()) @map("createdAt") @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updatedAt") @db.Timestamp(6)
+
+  @@map("Fornecedor")
+}

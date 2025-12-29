@@ -1,0 +1,35 @@
+model Entrada {
+  id                   Int       @id @default(autoincrement())
+  filialId             String
+  vagaId               Int
+  placaCavalo          String
+  placaCarreta         String?
+  motorista            String
+  proprietario         String?
+  tipo                 String
+  tipoVeiculoCategoria String?
+  tipoProprietario     String?
+  cliente              String?
+  transportadora       String?
+  statusCarga          String?
+  doca                 String?
+  valor                Float?
+  cte                  String?
+  nf                   String?
+  lacre                String?
+  cpfMotorista         String?
+  observacoes          String?
+  multi                Boolean?  @default(false)
+  status               String?   @default("ativo")
+  dataEntrada          DateTime? @default(now())
+  dataSaida            DateTime?
+
+  filial Filial @relation(fields: [filialId], references: [id])
+  vaga   Vaga   @relation(fields: [vagaId], references: [id])
+
+  // ⭐ RELACIONAMENTO COM VEÍCULO
+  veiculoId String?
+  veiculo   Veiculo? @relation(fields: [veiculoId], references: [id])
+
+  @@map("Entrada")
+}

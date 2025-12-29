@@ -1,0 +1,17 @@
+model Visitante {
+  id           Int       @id @default(autoincrement()) @map("id")
+  nome         String    @map("nome")
+  cpf          String    @map("cpf")
+  empresa      String?   @map("empresa")
+  tipoVisita   String    @map("tipoVisita")
+  motivoVisita String?   @map("motivoVisita")
+  status       String?   @default("aguardando") @map("status")
+  dataEntrada  DateTime? @map("dataEntrada") @db.Timestamp(6)
+  dataSaida    DateTime? @map("dataSaida") @db.Timestamp(6)
+  filialId     String    @map("filialId")
+  filial       Filial    @relation(fields: [filialId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_visitante_filial")
+
+  @@index([cpf], map: "idx_visitante_cpf")
+  @@index([filialId], map: "idx_visitante_filial")
+  @@map("Visitante")
+}

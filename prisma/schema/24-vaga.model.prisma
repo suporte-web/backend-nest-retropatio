@@ -1,0 +1,13 @@
+model Vaga {
+  id         Int       @id @default(autoincrement()) @map("id")
+  filialId   String    @map("filialId")
+  tipoVagaId Int       @map("tipoVagaId")
+  NomeVaga   String    @map("NomeVaga") @db.VarChar(50)
+  status     String?   @default("livre") @map("status")
+  entradas   Entrada[]
+  filial     Filial    @relation(fields: [filialId], references: [id])
+  tipoVaga   TipoVaga  @relation(fields: [tipoVagaId], references: [Id])
+  Veiculo    Veiculo[]
+
+  @@map("Vaga")
+}
