@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
@@ -16,10 +20,12 @@ export class UserService {
     nome: true,
     createdAt: true,
     updatedAt: true,
+    primeiroAcesso: true,
   };
 
   async create(body: any) {
-    const plainPassword = body.password ?? body.senha;
+    const plainPassword = process.env.SECRET_PASSWORD;
+
     if (!plainPassword) {
       throw new BadRequestException('Informe password (ou senha).');
     }
@@ -91,16 +97,6 @@ export class UserService {
   async updateUser(id: string, body: any) {
     const data: any = { ...body };
 
-    // aceita senha ou password
-    if (data.senha && !data.password) {
-      data.password = data.senha;
-      delete data.senha;
-    }
-
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
-
     try {
       return await this.prisma.user.update({
         where: { id },
@@ -114,28 +110,30 @@ export class UserService {
   }
 
   async updateSenhaUser(body: any) {
-    const { id, _id, senha1, senha2 } = body;
-    const userId = id ?? _id;
+    console.log(body);
 
-    if (!userId) throw new BadRequestException('Informe id (ou _id).');
-    if (!senha1 || !senha2) throw new BadRequestException('Informe senha1 e senha2.');
+    const senha = process.env.SECRET_PASSWORD;
 
-    if (senha1 !== senha2) {
-      throw new BadRequestException(
-        'Senhas diferentes, lembre-se que a senha deve ser a mesma!',
-      );
-    }
-
-    const hashed = await bcrypt.hash(senha1, 10);
+    const hashed = await bcrypt.hash(senha, 10);
 
     try {
       return await this.prisma.user.update({
-        where: { id: userId },
+        where: { id: body.id },
         data: {
           password: hashed,
-          // se você tiver esse campo no Prisma, descomente:
-          // primeiroAcesso: false,
+          primeiroAcesso: true,
         },
+        select: this.userSelect,
+      });
+    } catch (e: any) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+  }
+
+  async deleteUser(id: any) {
+    try {
+      return await this.prisma.user.delete({
+        where: { id: id },
         select: this.userSelect,
       });
     } catch (e: any) {

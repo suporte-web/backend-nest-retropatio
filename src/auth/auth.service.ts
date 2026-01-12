@@ -2,8 +2,8 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   UnauthorizedException,
-  UnprocessableEntityException,
 } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
@@ -25,22 +25,37 @@ export class AuthService {
 
   async validateUser(token: string) {
     const secret = getJwtSecret();
+    if (!token) throw new UnauthorizedException('Token not provided');
 
-    if (!token) {
-      throw new UnauthorizedException('Token not provided');
-    }
+    const rawToken = token.startsWith('Bearer ') ? token.slice(7) : token;
 
     try {
-      // jwt.verify retorna string | JwtPayload
-      const decoded = jwt.verify(token, secret);
-      return decoded;
+      const decoded = jwt.verify(rawToken, secret);
+
+      if (typeof decoded !== 'object' || decoded === null) {
+        throw new UnauthorizedException('Invalid token payload');
+      }
+
+      const userId = (decoded as any).sub ?? (decoded as any).id;
+      if (!userId) throw new UnauthorizedException('Invalid token payload');
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: String(userId) },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          role: true,
+          filialId: true,
+          Filial: { select: { id: true, nome: true } },
+        },
+      });
+
+      if (!user) throw new UnauthorizedException('Invalid token');
+      return user;
     } catch (error: any) {
-      if (error?.name === 'JsonWebTokenError') {
-        throw new UnauthorizedException('Invalid token format');
-      }
-      if (error?.name === 'TokenExpiredError') {
+      if (error?.name === 'TokenExpiredError')
         throw new UnauthorizedException('Token expired');
-      }
       throw new UnauthorizedException('Invalid token');
     }
   }
@@ -48,64 +63,38 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const secret = getJwtSecret();
 
-    // Ajuste aqui se seu DTO usa "senha" ou "password"
-    const plainPassword = (loginDto as any).senha ?? (loginDto as any).password;
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: loginDto.email },
+        include: {
+          permissoes: { include: { filial: true } },
+        },
+      });
 
-    if (!loginDto.email || !plainPassword) {
+      if (!user) throw new HttpException('Usuário não encontrado', 401);
+
+      const isPasswordValid = await bcrypt.compare(
+        loginDto.password,
+        user.password,
+      );
+      if (!isPasswordValid) throw new HttpException('Senha inválida', 401);
+
+      if (user.ativo === false) throw new HttpException('Usuário inativo', 422);
+
+      // ✅ payload mínimo
+      const payload = { sub: user.id, email: user.email, role: user.role };
+
+      return jwt.sign(payload, secret, { expiresIn: '12h' });
+    } catch (error) {
+      Logger.error(error?.message, error?.stack);
+
+      if (error instanceof HttpException) throw error;
+
       throw new HttpException(
-        'Email e senha são obrigatórios',
-        HttpStatus.BAD_REQUEST,
+        'Erro ao autenticar',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-
-    const user = await this.prisma.user.findUnique({
-      where: { email: loginDto.email },
-      include: {
-        permissoes: {
-          include: { filial: true },
-        },
-      },
-    });
-
-    if (!user) {
-      throw new UnauthorizedException('Usuário não encontrado');
-    }
-
-    const isPasswordValid = await bcrypt.compare(plainPassword, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Senha inválida');
-    }
-
-    if (user.ativo === false) {
-      throw new UnprocessableEntityException('Usuário inativo');
-    }
-
-    const filiais = user?.permissoes.map((p) => ({
-      id: p.filial.id,
-      nome: p.filial.nome,
-      codigo: p.filial.codigo,
-    }));
-
-    const token = jwt.sign(
-      {
-        id: user.id,
-        role: user.role,
-      },
-      secret,
-      { expiresIn: '8h' },
-    );
-
-    return {
-      message: 'Login bem-sucedido',
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        filiais, // 👈 exatamente o formato que o front espera!
-      },
-    };
   }
 
   async createJwt(user: any) {

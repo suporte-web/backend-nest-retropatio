@@ -17,7 +17,9 @@ export class FilialService {
       const permissoes = await this.prisma.userFilial.findMany({
         where: { userId },
         include: {
-          filial: { select: { id: true, nome: true, codigo: true } },
+          filial: {
+            select: { id: true, nome: true, codigo: true, endereco: true },
+          },
         },
       });
 

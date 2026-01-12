@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Injectable()
@@ -8,21 +8,16 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    if (!request.headers.authorization) {
-      return false;
-    }
+    const authHeader = request.headers.authorization;
+    if (!authHeader) throw new UnauthorizedException('Token not provided');
 
-    const token = request.headers.authorization.split(' ')[1];
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
 
-    try {
-      const userPayload = await this.authService.validateUser(token);
+    const user = await this.authService.validateUser(token);
 
-      // Salva o payload do usuário na request
-      request.user = userPayload;
-      return true;
-    } catch (error) {
-      console.log('🚨 AuthGuard: Token inválido -', error.message);
-      return false;
-    }
+    // no Prisma já é objeto JS e não tem _id/__v/toObject
+    request.user = user;
+
+    return true;
   }
 }

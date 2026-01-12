@@ -1,6 +1,6 @@
 model Veiculo {
-  id             String  @id @default(uuid())
-  placaCavalo    String
+  id             String   @id @default(uuid())
+  placaCavalo    String   @unique
   placaCarreta   String?
   motorista      String
   cpfMotorista   String?
@@ -14,13 +14,14 @@ model Veiculo {
   dataEntrada DateTime
   dataSaida   DateTime?
 
+  status   String?
   situacao String
   filialId String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // ⭐ RELACIONAMENTO INVERSO OBRIGATÓRIO
+  // Relacionamentos
   entradas Entrada[]
   filial   Filial    @relation(fields: [filialId], references: [id])
   vaga     Vaga?     @relation(fields: [vagaId], references: [id])

@@ -1,24 +1,23 @@
 import {
   createParamDecorator,
   ExecutionContext,
-  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 
 export const User = createParamDecorator(
   (_data: unknown, context: ExecutionContext) => {
     const request = context.switchToHttp().getRequest();
-    if (request.user) {
-      // Converte o documento Mongoose para objeto JavaScript simples
-      const user = request.user._doc ? request.user._doc : request.user;
-      
-      // Remove a senha do objeto retornado (opcional, mas recomendado)
-      const { senha, ...userWithoutPassword } = user;
-      
-      return userWithoutPassword;
-    } else {
-      throw new NotFoundException(
-        'Usuário não encontrado no request. Use o Auth Guard para obter os dados do usuario',
+
+    if (!request.user) {
+      throw new UnauthorizedException(
+        'Usuário não encontrado no request. Verifique o AuthGuard.',
       );
     }
+
+    // Prisma não tem _doc. Remove password se existir por algum motivo.
+    // (e "senha" também, caso você tenha legado)
+    const { password, senha, ...safeUser } = request.user;
+
+    return safeUser;
   },
 );
