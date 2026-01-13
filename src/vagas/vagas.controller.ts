@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -11,15 +12,15 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import { VagasService } from './vagas.service';
 import { CreateVagaDto } from './dtos/create-vaga.dto';
 import { UpdateVagaDto } from './dtos/update-vaga.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
-@ApiTags('vagas')
+@ApiTags('Vagas')
 @Controller('vagas')
 @UseGuards(AuthGuard)
 export class VagasController {
@@ -74,25 +75,21 @@ export class VagasController {
   }
 
   // Excluir vaga
-  @Delete(':id')
-  excluir(@Param('id') id: string, @Body('filialId') filialId: string) {
-    return this.vagasService.excluir(Number(id), filialId);
+  @Delete('delete/:id/:filialId')
+  excluir(@Param('id') id: number, @Param('filialId') filialId: string) {
+    return this.vagasService.excluir(id, filialId);
   }
 
   // Import Excel
   @Post('import')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: memoryStorage(),
-      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-    }),
-  )
-  importar(@UploadedFile() file?: Express.Multer.File) {
-    if (!file) {
-      // Nest vai retornar 400 se você preferir lançar exceção;
-      // aqui vou manter no padrão do seu Express
-      return { error: 'Arquivo não enviado' };
-    }
-    return this.vagasService.importarExcel(file.buffer);
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
+  importar(
+    @UploadedFile() file?: Express.Multer.File,
+    @Body('filialId') filialId?: string,
+  ) {
+    if (!file) throw new BadRequestException('Arquivo não enviado');
+    if (!filialId) throw new BadRequestException('filialId não enviado');
+
+    return this.vagasService.importarExcel(file.buffer, filialId);
   }
 }

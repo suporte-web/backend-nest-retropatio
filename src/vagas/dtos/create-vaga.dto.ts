@@ -4,9 +4,8 @@ export class CreateVagaDto {
   @IsString()
   filialId: string;
 
-  @IsInt()
-  @Min(1)
-  tipoVagaId: number;
+  @IsString()
+  tipoVaga: string;
 
   @IsString()
   NomeVaga: string;

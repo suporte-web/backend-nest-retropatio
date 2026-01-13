@@ -11,6 +11,7 @@ import { UserFilialModule } from './userFilial/userFilial.module';
 import { EntradaModule } from './entrada/entrada.module';
 import { VagasModule } from './vagas/vagas.module';
 import { VisitantesModule } from './visitantes/visitantes.module';
+import { FornecedoresModule } from './fornecedores/fornecedores.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { VisitantesModule } from './visitantes/visitantes.module';
     EntradaModule,
     VagasModule,
     VisitantesModule,
+    FornecedoresModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -72,7 +72,6 @@ model User {
 model TipoVaga {
   Id    Int    @id @default(autoincrement()) @map("Id")
   Nome  String @unique @map("Nome") @db.VarChar(100)
-  Vagas Vaga[]
 
   @@map("TipoVaga")
 }
@@ -81,12 +80,11 @@ model TipoVaga {
 model Vaga {
   id         Int       @id @default(autoincrement()) @map("id")
   filialId   String    @map("filialId")
-  tipoVagaId Int       @map("tipoVagaId")
   NomeVaga   String    @map("NomeVaga") @db.VarChar(50)
   status     String?   @default("livre") @map("status")
   entradas   Entrada[]
   filial     Filial    @relation(fields: [filialId], references: [id])
-  tipoVaga   TipoVaga  @relation(fields: [tipoVagaId], references: [Id])
+  tipoVaga   String  @map("tipoVaga")
   Veiculo    Veiculo[]
 
   @@map("Vaga")

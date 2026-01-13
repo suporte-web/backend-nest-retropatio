@@ -10,9 +10,8 @@ export class UpdateVagaDto {
   filialId?: string;
 
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  tipoVagaId?: number;
+  @IsString()
+  tipoVaga?: string;
 
   @IsOptional()
   @IsString()
