@@ -30,7 +30,6 @@ model Filial {
   User       User[]
   usuarios   UserFilial[]
   vagas      Vaga[]
-  Veiculo    Veiculo[]
   visitantes Visitante[]
 
   @@map("Filial")
@@ -85,7 +84,6 @@ model Vaga {
   entradas   Entrada[]
   filial     Filial    @relation(fields: [filialId], references: [id])
   tipoVaga   String  @map("tipoVaga")
-  Veiculo    Veiculo[]
 
   @@map("Vaga")
 }
@@ -161,32 +159,19 @@ model Fornecedor {
 // ----- 28-veiculo.model.prisma -----
 model Veiculo {
   id             String   @id @default(uuid())
-  placaCavalo    String   @unique
+  placaVeiculo   String   @unique
   placaCarreta   String?
-  motorista      String
-  cpfMotorista   String?
-  transportadora String?
+  tipoVeiculo    String
+  marcaVeiculo   String?
+  modeloVeiculo  String?
   cliente        String?
-
-  cte   String?
-  nf    String?
-  lacre String?
-
-  dataEntrada DateTime
-  dataSaida   DateTime?
-
-  status   String?
-  situacao String
-  filialId String
-
+  status         Boolean @default(true)
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
   entradas Entrada[]
-  filial   Filial    @relation(fields: [filialId], references: [id])
-  vaga     Vaga?     @relation(fields: [vagaId], references: [id])
-  vagaId   Int?
 
   @@map("Veiculo")
 }

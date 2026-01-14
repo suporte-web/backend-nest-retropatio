@@ -6,7 +6,6 @@ model Vaga {
   entradas   Entrada[]
   filial     Filial    @relation(fields: [filialId], references: [id])
   tipoVaga   String  @map("tipoVaga")
-  Veiculo    Veiculo[]
 
   @@map("Vaga")
 }

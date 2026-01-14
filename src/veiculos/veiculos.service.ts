@@ -3,11 +3,18 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import { RegistrarSaidaDto } from './dtos/registrar-saida.dto';
 import { CreateEntradaDto } from './dtos/create-entrada.dto';
+
+type CriarVeiculoBody = {
+  placaVeiculo: string;
+  tipoVeiculo: string;
+  status: boolean;
+};
 
 @Injectable()
 export class VeiculosService {
@@ -15,11 +22,45 @@ export class VeiculosService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  // ✅ Centraliza normalização de placas
+  private normalizarPlaca(placa: string) {
+    return placa?.trim().toUpperCase().replace(/\s+/g, '');
+  }
+
+  async criarVeiculo(body: CriarVeiculoBody) {
+    if (!body?.placaVeiculo || !body?.tipoVeiculo || !body?.status) {
+      throw new BadRequestException(
+        'Placa, Status Carga e Tipo são obrigatórios, verifique se inseriu todos',
+      );
+    }
+
+    const placaVeiculo = this.normalizarPlaca(body.placaVeiculo);
+
+    // ✅ opcional: impedir duplicidade por placa (se seu schema permitir duplicar, remova)
+    const existente = await this.prisma.veiculo.findFirst({
+      where: { placaVeiculo: { equals: placaVeiculo, mode: 'insensitive' } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (existente) {
+      throw new ConflictException(
+        'Já existe um veículo cadastrado com essa placa',
+      );
+    }
+
+    return this.prisma.veiculo.create({
+      data: {
+        tipoVeiculo: body.tipoVeiculo,
+        placaVeiculo,
+        status: body.status,
+      },
+    });
+  }
+
   async listarTodos() {
     try {
-      return await this.prisma.entrada.findMany({
-        include: { vaga: true, filial: true, veiculo: true },
-        orderBy: { dataEntrada: 'desc' },
+      return await this.prisma.veiculo.findMany({
+        orderBy: { createdAt: 'desc' },
       });
     } catch (e) {
       this.logger.error('Erro ao listar todos os veículos', e as any);
@@ -63,19 +104,22 @@ export class VeiculosService {
   }
 
   async buscarUltimoPorPlaca(placa: string) {
-    const veiculo = await this.prisma.entrada.findFirst({
+    const placaNorm = this.normalizarPlaca(placa);
+
+    const entrada = await this.prisma.entrada.findFirst({
       where: {
-        placaCavalo: { equals: placa, mode: 'insensitive' },
+        // ✅ busca sempre pela placa normalizada
+        placaCavalo: { equals: placaNorm, mode: 'insensitive' },
       },
       include: { veiculo: true },
       orderBy: { id: 'desc' },
     });
 
-    if (!veiculo) return { encontrado: false as const };
+    if (!entrada) return { encontrado: false as const };
 
     return {
       encontrado: true as const,
-      ultimaEntrada: veiculo,
+      ultimaEntrada: entrada,
     };
   }
 
@@ -90,27 +134,14 @@ export class VeiculosService {
     return veiculo;
   }
 
-  async registrarSaida(id: number, body: RegistrarSaidaDto) {
-    return this.prisma.$transaction(async (tx) => {
-      const saida = await tx.entrada.update({
-        where: { id },
-        data: {
-          dataSaida: new Date(),
-          status: 'finalizado',
-          cte: body.cte,
-          nf: body.nf,
-          lacre: body.lacre,
-        },
-      });
-
-      if (saida.vagaId) {
-        await tx.vaga.update({
-          where: { id: saida.vagaId },
-          data: { status: 'livre' },
-        });
-      }
-
-      return saida;
+  async update(id: string, body: any) {
+    return await this.prisma.veiculo.update({
+      where: { id },
+      data: {
+        placaVeiculo: body.placaVeiculo,
+        status: body.status,
+        tipoVeiculo: body.tipoVeiculo,
+      },
     });
   }
 
@@ -126,7 +157,10 @@ export class VeiculosService {
       );
     }
 
-    const placaCavalo = data.placaCavalo.trim().toUpperCase();
+    const placaCavalo = this.normalizarPlaca(data.placaCavalo);
+    const placaCarreta = data.placaCarreta
+      ? this.normalizarPlaca(data.placaCarreta)
+      : null;
 
     return this.prisma.$transaction(async (tx) => {
       const vaga = await tx.vaga.findUnique({
@@ -135,63 +169,35 @@ export class VeiculosService {
 
       if (!vaga) throw new BadRequestException('Vaga não encontrada');
 
-      // ✅ NÃO usa findUnique, porque seu Prisma Client não aceita placaCavalo como unique
+      // ✅ impede ocupar vaga já ocupada
+      if (vaga.status !== 'livre') {
+        throw new ConflictException('Vaga já está ocupada');
+      }
+
+      // ✅ vehicle é por placaVeiculo (ok). Usa a mesma normalização.
       let veiculo = await tx.veiculo.findFirst({
         where: {
-          placaCavalo: { equals: placaCavalo, mode: 'insensitive' },
+          placaVeiculo: { equals: placaCavalo, mode: 'insensitive' },
         },
-        orderBy: { createdAt: 'desc' }, // opcional, mas ajuda se houver duplicadas
+        orderBy: { createdAt: 'desc' },
       });
 
       if (!veiculo) {
         veiculo = await tx.veiculo.create({
           data: {
             id: randomUUID(),
-            placaCavalo,
-            placaCarreta: data.placaCarreta ?? null,
-            motorista: data.motorista,
-            cpfMotorista: data.cpfMotorista ?? null,
-            transportadora: data.transportadora ?? null,
+            placaVeiculo: placaCavalo,
+            placaCarreta,
             cliente: data.cliente ?? null,
-
-            cte: data.cte ?? null,
-            nf: data.nf ?? null,
-            lacre: data.lacre ?? null,
-
-            dataEntrada: new Date(),
-            dataSaida: null,
-
-            // ❌ status removido (seu Prisma Client diz que não existe)
-            // status: 'ativo',
-
-            // ✅ situacao existe no seu model
-            situacao: 'ativo',
-            filialId: data.filialId,
-            vagaId: data.vagaId,
+            tipoVeiculo: data.tipoVeiculo,
           },
         });
       } else {
         veiculo = await tx.veiculo.update({
-          where: { id: veiculo.id }, // ✅ id é unique com certeza
+          where: { id: veiculo.id },
           data: {
-            placaCarreta: data.placaCarreta ?? veiculo.placaCarreta,
-            motorista: data.motorista ?? veiculo.motorista,
-            cpfMotorista: data.cpfMotorista ?? veiculo.cpfMotorista,
-            transportadora: data.transportadora ?? veiculo.transportadora,
+            placaCarreta: placaCarreta ?? veiculo.placaCarreta,
             cliente: data.cliente ?? veiculo.cliente,
-            cte: data.cte ?? veiculo.cte,
-            nf: data.nf ?? veiculo.nf,
-            lacre: data.lacre ?? veiculo.lacre,
-
-            vagaId: data.vagaId,
-            filialId: data.filialId,
-
-            // ❌ status removido (seu Prisma Client diz que não existe)
-            // status: 'ativo',
-
-            situacao: 'ativo',
-            dataEntrada: new Date(),
-            dataSaida: null,
           },
         });
       }
@@ -203,7 +209,7 @@ export class VeiculosService {
           veiculoId: veiculo.id,
 
           placaCavalo,
-          placaCarreta: data.placaCarreta ?? null,
+          placaCarreta,
           motorista: data.motorista,
           proprietario: data.proprietario ?? null,
           tipo: data.tipo ?? 'entrada',
@@ -246,5 +252,9 @@ export class VeiculosService {
       include: { vaga: true, filial: true, veiculo: true },
       orderBy: { dataEntrada: 'desc' },
     });
+  }
+
+  async delete(id: string) {
+    return await this.prisma.veiculo.delete({ where: { id } });
   }
 }

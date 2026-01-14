@@ -9,6 +9,7 @@ import {
   Query,
   InternalServerErrorException,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { VeiculosService } from './veiculos.service';
 import { ListAtivosDto } from './dtos/list-ativos.dto';
@@ -23,6 +24,22 @@ import { AuthGuard } from 'src/auth/auth.guard';
 @UseGuards(AuthGuard)
 export class VeiculosController {
   constructor(private readonly service: VeiculosService) {}
+
+  // POST /api/veiculos
+  @Post('cadastrar-entrada')
+  async cadastrarEntrada(@Body() body: CreateEntradaDto) {
+    try {
+      return await this.service.cadastrarEntrada(body);
+    } catch (e) {
+      if (e?.status) throw e;
+      throw new InternalServerErrorException('Erro ao registrar veículo');
+    }
+  }
+
+  @Post('create')
+  async createVeiculo(@Body() body: any) {
+    return await this.service.criarVeiculo(body);
+  }
 
   // GET /api/veiculos/all
   @Get('all')
@@ -89,28 +106,14 @@ export class VeiculosController {
     }
   }
 
-  // PATCH /api/veiculos/:id/saida
-  @Patch(':id/saida')
-  async saida(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: RegistrarSaidaDto,
-  ) {
-    try {
-      return await this.service.registrarSaida(id, body);
-    } catch (e) {
-      if (e?.status) throw e;
-      throw new InternalServerErrorException('Erro ao registrar saída');
-    }
+  // PATCH /api/veiculos/:id
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() body: any) {
+    return await this.service.update(id, body);
   }
 
-  // POST /api/veiculos
-  @Post()
-  async create(@Body() body: CreateEntradaDto) {
-    try {
-      return await this.service.cadastrarEntrada(body);
-    } catch (e) {
-      if (e?.status) throw e;
-      throw new InternalServerErrorException('Erro ao registrar veículo');
-    }
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    return await this.service.delete(id);
   }
 }

@@ -10,7 +10,6 @@ model Filial {
   User       User[]
   usuarios   UserFilial[]
   vagas      Vaga[]
-  Veiculo    Veiculo[]
   visitantes Visitante[]
 
   @@map("Filial")

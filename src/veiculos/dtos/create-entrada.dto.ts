@@ -85,6 +85,10 @@ export class CreateEntradaDto {
   @IsString()
   observacoes?: string | null;
 
+  @IsString()
+  @IsNotEmpty()
+  tipoVeiculo!: string;
+
   @IsOptional()
   @IsBoolean()
   multi?: boolean;
