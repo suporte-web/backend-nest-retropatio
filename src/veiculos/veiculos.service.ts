@@ -137,11 +137,7 @@ export class VeiculosService {
   async update(id: string, body: any) {
     return await this.prisma.veiculo.update({
       where: { id },
-      data: {
-        placaVeiculo: body.placaVeiculo,
-        status: body.status,
-        tipoVeiculo: body.tipoVeiculo,
-      },
+      data: body,
     });
   }
 
