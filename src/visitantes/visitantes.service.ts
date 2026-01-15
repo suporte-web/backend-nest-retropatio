@@ -27,7 +27,7 @@ export class VisitantesService {
         tipoVisita,
         motivoVisita,
         filialId,
-        status: 'aguardando',
+        status: 'AGUARDANDO',
       },
     });
   }
@@ -51,68 +51,67 @@ export class VisitantesService {
   }
 
   // GET /api/visitantes/painel/:filialId
-  async painel(filialId: string) {
-    return this.prisma.visitante.findMany({
+  async painel(body: any) {
+    const { status, filialId, page, limit } = body;
+
+    const statusList = Array.isArray(status)
+      ? status
+      : status
+        ? [status]
+        : undefined;
+
+    const skip = (page - 1) * limit;
+
+    const result = await this.prisma.visitante.findMany({
       where: {
-        filialId,
-        status: { in: ['aguardando', 'aprovado', 'dentro'] },
+        filialId: filialId,
+        status: { in: statusList },
       },
       orderBy: { id: 'desc' },
+      skip,
+      take: limit,
     });
-  }
-
-  // GET /api/visitantes/historico/:filialId
-  async historico(filialId: string) {
-    return this.prisma.visitante.findMany({
+    const total = await this.prisma.visitante.count({
       where: {
-        filialId,
-        OR: [{ status: 'saiu' }, { dataSaida: { not: null } }],
+        filialId: filialId,
+        status: { in: statusList },
       },
-      orderBy: { dataSaida: 'desc' },
     });
-  }
 
-  // GET /api/visitantes/aguardando/:filialId
-  async aguardando(filialId: string) {
-    return this.prisma.visitante.findMany({
-      where: { filialId, status: 'aguardando' },
-      orderBy: { id: 'desc' },
-    });
-  }
-
-  // GET /api/visitantes/dentro/:filialId
-  async dentro(filialId: string) {
-    return this.prisma.visitante.findMany({
-      where: { filialId, status: 'dentro' },
-      orderBy: { dataEntrada: 'desc' },
-    });
+    return { result, total };
   }
 
   // PATCH /api/visitantes/:id/aprovar
   async aprovar(id: number) {
     return this.prisma.visitante.update({
       where: { id: Number(id) },
-      data: { status: 'aprovado' },
+      data: { status: 'APROVADO' },
     });
   }
 
-  // PATCH /api/visitantes/:id/entrada
-  async registrarEntrada(id: number) {
+  async reprovar(id: number) {
+    return this.prisma.visitante.update({
+      where: { id: Number(id) },
+      data: { status: 'REPROVADO' },
+    });
+  }
+
+  async dentro(id: number) {
     return this.prisma.visitante.update({
       where: { id: Number(id) },
       data: {
-        status: 'dentro',
+        status: 'DENTRO',
         dataEntrada: new Date(),
       },
     });
   }
 
   // PATCH /api/visitantes/:id/saida
-  async registrarSaida(id: number) {
+  async saiu(id: number) {
     return this.prisma.visitante.update({
       where: { id: Number(id) },
       data: {
-        status: 'saiu',
+        status: 'SAIU',
         dataSaida: new Date(),
       },
     });
@@ -125,7 +124,7 @@ export class VisitantesService {
     const visitantes = await this.prisma.visitante.findMany({
       where: {
         filialId: String(filialId),
-        OR: [{ status: 'saiu' }, { dataSaida: { not: null } }],
+        OR: [{ status: 'SAIU' }, { dataSaida: { not: null } }],
       },
       orderBy: { dataSaida: 'desc' },
     });
@@ -136,8 +135,12 @@ export class VisitantesService {
         safeCsv(v.nome),
         safeCsv(v.cpf),
         safeCsv(v.empresa ?? ''),
-        v.dataEntrada ? safeCsv(new Date(v.dataEntrada).toLocaleString('pt-BR')) : '',
-        v.dataSaida ? safeCsv(new Date(v.dataSaida).toLocaleString('pt-BR')) : '',
+        v.dataEntrada
+          ? safeCsv(new Date(v.dataEntrada).toLocaleString('pt-BR'))
+          : '',
+        v.dataSaida
+          ? safeCsv(new Date(v.dataSaida).toLocaleString('pt-BR'))
+          : '',
       ].join(','),
     );
 

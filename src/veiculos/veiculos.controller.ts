@@ -50,6 +50,15 @@ export class VeiculosController {
       throw new InternalServerErrorException('Erro ao listar veículos');
     }
   }
+  
+  @Get('all-ativos')
+  async allAtivos() {
+    try {
+      return await this.service.listarTodosAtivos();
+    } catch {
+      throw new InternalServerErrorException('Erro ao listar veículos');
+    }
+  }
 
   // GET /api/veiculos/ativos?filialId=xxxx
   @Get('ativos')

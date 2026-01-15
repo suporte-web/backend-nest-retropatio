@@ -7,27 +7,29 @@ import {
   Query,
   Body,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { VisitantesService } from './visitantes.service';
 import { CreateVisitanteDto } from './dtos/create-visitante.dto';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from 'src/auth/auth.guard';
 
-@Controller('api/visitantes')
+@ApiTags('Visitantes')
+@Controller('visitantes')
+@UseGuards(AuthGuard)
 export class VisitantesController {
   constructor(private readonly service: VisitantesService) {}
 
-  /* ======================================================
-     CRIAR VISITANTE
-     POST /api/visitantes
-  ====================================================== */
-  @Post()
+  @Post('create')
+  @ApiOperation({ summary: 'Cria Visitante' })
   criar(@Body() dto: CreateVisitanteDto) {
     return this.service.criar(dto);
   }
 
   /* ======================================================
-     LISTAR VISITANTES POR FILIAL (CONTRATO DO FRONT)
-     GET /api/visitantes?filialId=xxxx
+  LISTAR VISITANTES POR FILIAL (CONTRATO DO FRONT)
+  GET /api/visitantes?filialId=xxxx
   ====================================================== */
   @Get()
   listar(@Query('filialId') filialId: string) {
@@ -35,75 +37,42 @@ export class VisitantesController {
   }
 
   /* ======================================================
-     COMPATIBILIDADE COM FRONT ANTIGO
-     GET /api/visitantes/filial/:filialId
+  COMPATIBILIDADE COM FRONT ANTIGO
+  GET /api/visitantes/filial/:filialId
   ====================================================== */
   @Get('filial/:filialId')
   listarPorFilial(@Param('filialId') filialId: string) {
     return this.service.listarPorFilialParam(filialId);
   }
 
-  /* ======================================================
-     PAINEL DE VISITANTES
-     GET /api/visitantes/painel/:filialId
-  ====================================================== */
-  @Get('painel/:filialId')
-  painel(@Param('filialId') filialId: string) {
-    return this.service.painel(filialId);
+  @Post('find-by-filter')
+  @ApiOperation({ summary: 'Encontra o Visitante com filtros' })
+  painel(@Body() body: any) {
+    return this.service.painel(body);
   }
 
-  /* ======================================================
-     HISTÓRICO DE VISITANTES
-     GET /api/visitantes/historico/:filialId
-  ====================================================== */
-  @Get('historico/:filialId')
-  historico(@Param('filialId') filialId: string) {
-    return this.service.historico(filialId);
-  }
-
-  /* ======================================================
-     AGUARDANDO APROVAÇÃO
-     GET /api/visitantes/aguardando/:filialId
-  ====================================================== */
-  @Get('aguardando/:filialId')
-  aguardando(@Param('filialId') filialId: string) {
-    return this.service.aguardando(filialId);
-  }
-
-  /* ======================================================
-     VISITANTES DENTRO
-     GET /api/visitantes/dentro/:filialId
-  ====================================================== */
-  @Get('dentro/:filialId')
-  dentro(@Param('filialId') filialId: string) {
-    return this.service.dentro(filialId);
-  }
-
-  /* ======================================================
-     APROVAR VISITANTE
-     PATCH /api/visitantes/:id/aprovar
-  ====================================================== */
   @Patch(':id/aprovar')
+  @ApiOperation({ summary: 'Aprova a entrada do Visitante para a Portaria' })
   aprovar(@Param('id') id: string) {
     return this.service.aprovar(Number(id));
   }
-
-  /* ======================================================
-     REGISTRAR ENTRADA
-     PATCH /api/visitantes/:id/entrada
-  ====================================================== */
-  @Patch(':id/entrada')
-  entrada(@Param('id') id: string) {
-    return this.service.registrarEntrada(Number(id));
+  
+  @Patch(':id/reprovar')
+  @ApiOperation({ summary: 'Reprova a entrada do Visitante para a Portaria' })
+  reprovar(@Param('id') id: string) {
+    return this.service.reprovar(Number(id));
   }
 
-  /* ======================================================
-     REGISTRAR SAÍDA
-     PATCH /api/visitantes/:id/saida
-  ====================================================== */
-  @Patch(':id/saida')
-  saida(@Param('id') id: string) {
-    return this.service.registrarSaida(Number(id));
+  @Patch(':id/dentro')
+  @ApiOperation({ summary: 'Portaria libera a entrada do Visitante para a Empresa' })
+  dentro(@Param('id') id: string) {
+    return this.service.dentro(Number(id));
+  }
+  
+  @Patch(':id/saiu')
+  @ApiOperation({ summary: 'Portaria libera a saída do Visitante da Empresa' })
+  saiu(@Param('id') id: string) {
+    return this.service.saiu(Number(id));
   }
 
   /* ======================================================

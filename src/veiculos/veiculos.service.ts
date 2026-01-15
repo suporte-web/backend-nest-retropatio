@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
-import { RegistrarSaidaDto } from './dtos/registrar-saida.dto';
 import { CreateEntradaDto } from './dtos/create-entrada.dto';
 
 type CriarVeiculoBody = {
@@ -60,6 +59,18 @@ export class VeiculosService {
   async listarTodos() {
     try {
       return await this.prisma.veiculo.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+    } catch (e) {
+      this.logger.error('Erro ao listar todos os veículos', e as any);
+      throw e;
+    }
+  }
+
+  async listarTodosAtivos() {
+    try {
+      return await this.prisma.veiculo.findMany({
+        where: { status: true },
         orderBy: { createdAt: 'desc' },
       });
     } catch (e) {
