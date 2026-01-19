@@ -214,10 +214,8 @@ export class VeiculosService {
           filialId: data.filialId,
           vagaId: data.vagaId,
           veiculoId: veiculo.id,
-
           placaCavalo,
           placaCarreta,
-          motorista: data.motorista,
           proprietario: data.proprietario ?? null,
           tipo: data.tipo ?? 'entrada',
           tipoVeiculoCategoria: data.tipoVeiculoCategoria ?? null,
@@ -230,7 +228,6 @@ export class VeiculosService {
           cte: data.cte ?? null,
           nf: data.nf ?? null,
           lacre: data.lacre ?? null,
-          cpfMotorista: data.cpfMotorista ?? null,
           observacoes: data.observacoes ?? null,
           multi: data.multi ?? false,
           status: 'ativo',

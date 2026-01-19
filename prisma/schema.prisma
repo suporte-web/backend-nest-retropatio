@@ -95,7 +95,6 @@ model Entrada {
   vagaId               Int
   placaCavalo          String
   placaCarreta         String?
-  motorista            String
   proprietario         String?
   tipo                 String
   tipoVeiculoCategoria String?
@@ -108,7 +107,6 @@ model Entrada {
   cte                  String?
   nf                   String?
   lacre                String?
-  cpfMotorista         String?
   observacoes          String?
   multi                Boolean?  @default(false)
   status               String?   @default("ativo")
@@ -119,8 +117,10 @@ model Entrada {
   vaga   Vaga   @relation(fields: [vagaId], references: [id])
 
   // ⭐ RELACIONAMENTO COM VEÍCULO
-  veiculoId String?
-  veiculo   Veiculo? @relation(fields: [veiculoId], references: [id])
+  veiculoId     String?
+  veiculo       Veiculo? @relation(fields: [veiculoId], references: [id])
+  motoristaId   String?
+  motorista     Motorista? @relation(fields: [motoristaId], references: [id])
 
   @@map("Entrada")
 }
@@ -187,4 +187,23 @@ model AuditLog {
   createdAt   DateTime @default(now())
 
   @@map("audit_logs")
+}
+
+// ----- 30-motorista.model.prisma -----
+model Motorista {
+  id                String  @id @default(uuid()) @map("id")
+  nome              String
+  cpf               String  @unique
+  status            Boolean @default(true)
+  dataNascimento    String?
+  categoriaCarteira String?
+  tipo              String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  entradas Entrada[]
+
+  @@map("Motorista")
 }

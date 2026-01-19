@@ -46,13 +46,11 @@ export class EntradaService {
         data: {
           filialId: dto.filialId,
           vagaId,
-
           placaCavalo: dto.placaCavalo,
           placaCarreta: dto.placaCarreta || null,
-          motorista: dto.motorista,
+          motoristaId: dto.motoristaId || null,
           proprietario: dto.proprietario || null,
           tipo: dto.tipo,
-
           tipoVeiculoCategoria: dto.tipoVeiculoCategoria || null,
           tipoProprietario: dto.tipoProprietario || null,
           cliente: dto.cliente || null,
@@ -63,7 +61,6 @@ export class EntradaService {
           cte: dto.cte || null,
           nf: dto.nf || null,
           lacre: dto.lacre || null,
-          cpfMotorista: dto.cpfMotorista || null,
           observacoes: dto.observacoes || null,
           multi: dto.multi ?? false,
 

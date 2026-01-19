@@ -24,8 +24,8 @@ export class CreateEntradaDto {
   placaCarreta?: string;
 
   @IsString()
-  @IsNotEmpty()
-  motorista: string;
+  @IsOptional()
+  motoristaId: string;
 
   @IsOptional()
   @IsString()
@@ -75,10 +75,6 @@ export class CreateEntradaDto {
   @IsOptional()
   @IsString()
   lacre?: string;
-
-  @IsOptional()
-  @IsString()
-  cpfMotorista?: string;
 
   @IsOptional()
   @IsString()
