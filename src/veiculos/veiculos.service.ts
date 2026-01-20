@@ -12,7 +12,7 @@ import { CreateEntradaDto } from './dtos/create-entrada.dto';
 type CriarVeiculoBody = {
   placaVeiculo: string;
   tipoVeiculo: string;
-  status: boolean;
+  ativo: boolean;
 };
 
 @Injectable()
@@ -27,7 +27,7 @@ export class VeiculosService {
   }
 
   async criarVeiculo(body: CriarVeiculoBody) {
-    if (!body?.placaVeiculo || !body?.tipoVeiculo || !body?.status) {
+    if (!body?.placaVeiculo || !body?.tipoVeiculo || !body?.ativo) {
       throw new BadRequestException(
         'Placa, Status Carga e Tipo são obrigatórios, verifique se inseriu todos',
       );
@@ -51,7 +51,7 @@ export class VeiculosService {
       data: {
         tipoVeiculo: body.tipoVeiculo,
         placaVeiculo,
-        status: body.status,
+        ativo: body.ativo,
       },
     });
   }
@@ -70,7 +70,7 @@ export class VeiculosService {
   async listarTodosAtivos() {
     try {
       return await this.prisma.veiculo.findMany({
-        where: { status: true },
+        where: { ativo: true },
         orderBy: { createdAt: 'desc' },
       });
     } catch (e) {
