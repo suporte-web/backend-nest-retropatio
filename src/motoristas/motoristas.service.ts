@@ -34,6 +34,7 @@ export class MotoristasService {
       : status !== undefined
         ? [status]
         : [];
+        
     const boolList = rawList
       .map(toBool)
       .filter((v): v is boolean => v !== undefined);

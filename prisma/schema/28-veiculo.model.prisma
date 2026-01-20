@@ -12,7 +12,8 @@ model Veiculo {
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
-  entradas Entrada[]
+  entradas  Entrada[]
+  chamadas  Chamadas[]
 
   @@map("Veiculo")
 }

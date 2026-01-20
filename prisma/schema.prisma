@@ -171,7 +171,8 @@ model Veiculo {
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
-  entradas Entrada[]
+  entradas  Entrada[]
+  chamadas  Chamadas[]
 
   @@map("Veiculo")
 }
@@ -203,7 +204,28 @@ model Motorista {
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
-  entradas Entrada[]
+  entradas  Entrada[]
+  chamadas  Chamadas[]
 
   @@map("Motorista")
+}
+
+// ----- 31-chamadas.model.prisma -----
+model Chamadas {
+    id              String @id @default(uuid()) @map("id")
+    status          String?
+    filialId        String?
+    dataAtendimento String?
+    motivo          String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relacionamentos
+    veiculoId     String?
+    veiculo       Veiculo? @relation(fields: [veiculoId], references: [id])
+    motoristaId   String?
+    motorista     Motorista? @relation(fields: [motoristaId], references: [id])
+
+    @@map("Chamadas")
 }

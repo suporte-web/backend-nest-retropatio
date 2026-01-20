@@ -13,6 +13,7 @@ import { VagasModule } from './vagas/vagas.module';
 import { VisitantesModule } from './visitantes/visitantes.module';
 import { FornecedoresModule } from './fornecedores/fornecedores.module';
 import { MotoristaModule } from './motoristas/motoristas.module';
+import { ChamadasModule } from './chamadas/chamadas.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { MotoristaModule } from './motoristas/motoristas.module';
     VisitantesModule,
     FornecedoresModule,
     MotoristaModule,
+    ChamadasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
