@@ -40,7 +40,7 @@ export class ChamadasService {
             }
           : {}),
       };
-      
+
       const result = await this.prisma.chamadas.findMany({
         where,
         orderBy: { id: 'desc' },
@@ -90,5 +90,15 @@ export class ChamadasService {
     } catch (e) {
       throw new InternalServerErrorException('Erro ao atender chamada');
     }
+  }
+
+  async findPendentes() {
+    return await this.prisma.chamadas.findMany({
+      where: { status: 'PENDENTE' },
+      include: {
+        motorista: true,
+        veiculo: true,
+      },
+    });
   }
 }

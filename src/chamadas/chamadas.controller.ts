@@ -45,4 +45,9 @@ export class ChamadasController {
   async atender(@Param('id') id: string) {
     return this.chamadasService.atender(id);
   }
+
+  @Get('find-pendentes')
+  async findPendentes() {
+    return await this.chamadasService.findPendentes()
+  }
 }
