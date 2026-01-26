@@ -53,7 +53,7 @@ export class EntradaService {
           tipo: dto.tipo,
           tipoVeiculoCategoria: dto.tipoVeiculoCategoria || null,
           tipoProprietario: dto.tipoProprietario || null,
-          cliente: dto.cliente || null,
+          clienteId: dto.cliente ?? undefined,
           transportadora: dto.transportadora || null,
           statusCarga: dto.statusCarga || null,
           doca: dto.doca || null,

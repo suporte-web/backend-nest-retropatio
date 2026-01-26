@@ -11,8 +11,10 @@ model Motorista {
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
-  entradas  Entrada[]
-  chamadas  Chamadas[]
+  entradas      Entrada[]
+  chamadas      Chamadas[]
+  clienteId     String?
+  cliente       Cliente? @relation(fields: [clienteId], references: [id])
 
   @@map("Motorista")
 }

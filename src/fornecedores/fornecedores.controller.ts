@@ -6,51 +6,49 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { FornecedoresService } from './fornecedores.service';
 import { CreateFornecedorDto } from './dtos/create-fornecedor.dto';
 import { UpdateFornecedorDto } from './dtos/update-fornecedor.dto';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from 'src/auth/auth.guard';
 
-@Controller('api/fornecedores')
+@ApiTags('fornecedores')
+@Controller('fornecedores')
+@UseGuards(AuthGuard)
 export class FornecedoresController {
   constructor(private readonly service: FornecedoresService) {}
 
-  /* ======================================================
-     1) LISTAR FORNECEDORES
-     GET /api/fornecedores
-  ====================================================== */
   @Get()
+  @ApiOperation({ summary: 'Encontra todos os Fornecedores' })
   listar() {
     return this.service.listar();
   }
 
-  /* ======================================================
-     2) CRIAR FORNECEDOR
-     POST /api/fornecedores
-  ====================================================== */
-  @Post()
+  @Post('create')
+  @ApiOperation({ summary: 'Cria o Fornecedor' })
   async criar(@Body() dto: CreateFornecedorDto) {
-    // No Express você retornava 201; no Nest dá pra fazer com decorator,
-    // mas vou manter simples (Nest retorna 201 automaticamente em POST? Não.
-    // Então se você quiser 201 fixo, use @HttpCode(201).)
     return this.service.criar(dto);
   }
 
-  /* ======================================================
-     3) ATUALIZAR FORNECEDOR
-     PATCH /api/fornecedores/:id
-  ====================================================== */
-  @Patch(':id')
+  @Patch('update/:id')
+  @ApiOperation({
+    summary: 'Atualiza o Fornecedor com base no ID e informações passadas',
+  })
   atualizar(@Param('id') id: string, @Body() dto: UpdateFornecedorDto) {
     return this.service.atualizar(id, dto);
   }
 
-  /* ======================================================
-     4) REMOVER FORNECEDOR
-     DELETE /api/fornecedores/:id
-  ====================================================== */
   @Delete(':id')
+  @ApiOperation({ summary: 'Deleta Fornecedor com base no ID passado' })
   remover(@Param('id') id: string) {
     return this.service.remover(id);
+  }
+  
+  @Post('find-by-filter')
+  @ApiOperation({ summary: 'Encontra o Fornecedor com filtros' })
+  async findByFilter(@Body() body: any) {
+    return await this.service.findByFilter(body)
   }
 }

@@ -99,7 +99,6 @@ model Entrada {
   tipo                 String
   tipoVeiculoCategoria String?
   tipoProprietario     String?
-  cliente              String?
   transportadora       String?
   statusCarga          String?
   doca                 String?
@@ -121,6 +120,8 @@ model Entrada {
   veiculo       Veiculo? @relation(fields: [veiculoId], references: [id])
   motoristaId   String?
   motorista     Motorista? @relation(fields: [motoristaId], references: [id])
+  clienteId     String?
+  cliente       Cliente? @relation(fields: [clienteId], references: [id])
 
   @@map("Entrada")
 }
@@ -164,7 +165,6 @@ model Veiculo {
   tipoVeiculo    String
   marcaVeiculo   String?
   modeloVeiculo  String?
-  cliente        String?
   ativo          Boolean @default(true)
   status         String?
   
@@ -172,8 +172,10 @@ model Veiculo {
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
-  entradas  Entrada[]
-  chamadas  Chamadas[]
+  entradas      Entrada[]
+  chamadas      Chamadas[]
+  clienteId     String?
+  cliente       Cliente? @relation(fields: [clienteId], references: [id])
 
   @@map("Veiculo")
 }
@@ -205,8 +207,10 @@ model Motorista {
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
-  entradas  Entrada[]
-  chamadas  Chamadas[]
+  entradas      Entrada[]
+  chamadas      Chamadas[]
+  clienteId     String?
+  cliente       Cliente? @relation(fields: [clienteId], references: [id])
 
   @@map("Motorista")
 }
@@ -229,4 +233,21 @@ model Chamadas {
     motorista     Motorista? @relation(fields: [motoristaId], references: [id])
 
     @@map("Chamadas")
+}
+
+// ----- 32-clientes.model.prisma -----
+model Cliente {
+    id          String      @id @default(uuid())
+    nome        String?
+    cnpj        String?
+    ativo       Boolean @default(true)
+    status      String?
+  
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relacionamentos
+    motorista     Motorista[]
+    veiculo       Veiculo[]
+    entradas      Entrada[]
 }

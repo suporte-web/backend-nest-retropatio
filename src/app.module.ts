@@ -14,6 +14,7 @@ import { VisitantesModule } from './visitantes/visitantes.module';
 import { FornecedoresModule } from './fornecedores/fornecedores.module';
 import { MotoristaModule } from './motoristas/motoristas.module';
 import { ChamadasModule } from './chamadas/chamadas.module';
+import { ClientesModule } from './clientes/clientes.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ChamadasModule } from './chamadas/chamadas.module';
     FornecedoresModule,
     MotoristaModule,
     ChamadasModule,
+    ClientesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

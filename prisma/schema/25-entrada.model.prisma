@@ -8,7 +8,6 @@ model Entrada {
   tipo                 String
   tipoVeiculoCategoria String?
   tipoProprietario     String?
-  cliente              String?
   transportadora       String?
   statusCarga          String?
   doca                 String?
@@ -30,6 +29,8 @@ model Entrada {
   veiculo       Veiculo? @relation(fields: [veiculoId], references: [id])
   motoristaId   String?
   motorista     Motorista? @relation(fields: [motoristaId], references: [id])
+  clienteId     String?
+  cliente       Cliente? @relation(fields: [clienteId], references: [id])
 
   @@map("Entrada")
 }

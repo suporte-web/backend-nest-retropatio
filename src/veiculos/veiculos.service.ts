@@ -195,7 +195,7 @@ export class VeiculosService {
             id: randomUUID(),
             placaVeiculo: placaCavalo,
             placaCarreta,
-            cliente: data.cliente ?? null,
+            clienteId: data.cliente ?? undefined,
             tipoVeiculo: data.tipoVeiculo,
           },
         });
@@ -204,7 +204,7 @@ export class VeiculosService {
           where: { id: veiculo.id },
           data: {
             placaCarreta: placaCarreta ?? veiculo.placaCarreta,
-            cliente: data.cliente ?? veiculo.cliente,
+            clienteId: data.cliente ?? veiculo.clienteId,
           },
         });
       }
@@ -220,7 +220,7 @@ export class VeiculosService {
           tipo: data.tipo ?? 'entrada',
           tipoVeiculoCategoria: data.tipoVeiculoCategoria ?? null,
           tipoProprietario: data.tipoProprietario ?? null,
-          cliente: data.cliente ?? null,
+          clienteId: data.cliente ?? null,
           transportadora: data.transportadora ?? null,
           statusCarga: data.statusCarga ?? null,
           doca: data.doca ?? null,
